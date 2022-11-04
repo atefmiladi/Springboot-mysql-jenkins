@@ -2,7 +2,7 @@ HELP.md
 target/
 mvnw
 .mvn
-mvnw.cmdgi
+mvnw.cmd
 .m2
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
