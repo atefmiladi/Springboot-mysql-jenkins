@@ -1,7 +1,6 @@
 pipeline {
     agent any
     
-  
     stages {
         stage ("Git Checkout"){
             steps{
@@ -34,8 +33,14 @@ pipeline {
         
         stage('Sonarqube Test') {
             steps {
-                echo "Sonarqube Testing "
-                sh 'mvn sonar:sonar -Dsonar.login=admin -Dsonar.password=0000'
+                  echo "Sonarqube Testing "
+                  
+                withCredentials([string(credentialsId: 'SonarId', variable: 'Sonar')]) {
+                      
+                      sh 'mvn sonar:sonar -Dsonar.login=admin -Dsonar.password=${Sonar}'
+                } 
+              
+                
             }
         }
         
@@ -48,18 +53,16 @@ pipeline {
         
          stage("Publish to Nexus") {
              steps {
-            
-            sh 'mvn deploy'
+        sh 'mvn deploy'
+      }
+    
+    }
         
-        }
-       
-       
-        
-        }
+    
         stage("Build our Image") {
           steps {
           
-              sh 'docker build -t 06990737/spring:$BUILD_NUMBER .'
+              sh 'docker build -t msoloz/spring:$BUILD_NUMBER .'
               
              }
        }
@@ -67,22 +70,24 @@ pipeline {
        stage("Push to DockerHub") { 
             steps { 
                 script {
-                     withCredentials([string(credentialsId: 'dockerID', variable: 'Docker')]) {
-                        sh 'docker login -u 06990737 -p ${Docker}'
-                        sh 'docker image push 06990737/spring:$BUILD_NUMBER'
-                } 
+                    
+                    withCredentials([string(credentialsId: 'DockerId', variable: 'Docker')]) {
+                        sh 'docker login -u msoloz -p ${Docker}'
+                        sh 'docker image push msoloz/spring:$BUILD_NUMBER'
+                }
+            } 
             }
             
-        }
         }
         
         stage("Docker-Compose") {
           steps {
-              sh 'docker-compose up'
+              sh 'docker-compose up -d'
              }
        
        
        } 
+      
        
-    }
+     }
 }
